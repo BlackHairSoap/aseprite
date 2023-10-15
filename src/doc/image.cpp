@@ -32,7 +32,17 @@ Image::~Image()
 
 int Image::getMemSize() const
 {
-  return sizeof(Image) + rowBytes()*height();
+  return sizeof(Image) + getRowStrideSize()*height();
+}
+
+int Image::getRowStrideSize() const
+{
+  return getRowStrideSize(width());
+}
+
+int Image::getRowStrideSize(int pixels_per_row) const
+{
+  return calculate_rowstride_bytes(pixelFormat(), pixels_per_row);
 }
 
 // static

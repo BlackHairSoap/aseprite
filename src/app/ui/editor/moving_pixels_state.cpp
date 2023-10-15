@@ -1,5 +1,5 @@
 // Aseprite
-// Copyright (C) 2019-2023  Igara Studio S.A.
+// Copyright (C) 2019-2022  Igara Studio S.A.
 // Copyright (C) 2001-2018  David Capello
 //
 // This program is distributed under the terms of
@@ -441,11 +441,7 @@ void MovingPixelsState::onCommitMouseMove(Editor* editor,
   KeyAction action = m_editor->getCustomizationDelegate()
     ->getPressedKeyAction(keyContext);
 
-  bool snapToGrid  = m_editor->docPref().grid.snap();
-  if (bool(action & KeyAction::SnapToGrid))
-    snapToGrid = !snapToGrid;
-
-  if (snapToGrid)
+  if (int(action & KeyAction::SnapToGrid))
     moveModifier |= PixelsMovement::SnapToGridMovement;
 
   if (int(action & KeyAction::AngleSnap))

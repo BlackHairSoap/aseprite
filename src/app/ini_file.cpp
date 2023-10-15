@@ -1,5 +1,5 @@
 // Aseprite
-// Copyright (C) 2018-2023  Igara Studio S.A.
+// Copyright (C) 2018-2021  Igara Studio S.A.
 // Copyright (C) 2001-2016  David Capello
 //
 // This program is distributed under the terms of
@@ -16,7 +16,6 @@
 #include "base/split_string.h"
 #include "base/string.h"
 #include "cfg/cfg.h"
-#include "fmt/format.h"
 
 #ifdef __APPLE__
 #include "os/logger.h"
@@ -209,8 +208,9 @@ Point get_config_point(const char* section, const char* name, const Point& point
 
 void set_config_point(const char* section, const char* name, const Point& point)
 {
-  std::string buf = fmt::format("{} {}", point.x, point.y);
-  set_config_string(section, name, buf.c_str());
+  char buf[128];
+  sprintf(buf, "%d %d", point.x, point.y);
+  set_config_string(section, name, buf);
 }
 
 Size get_config_size(const char* section, const char* name, const Size& size)
@@ -230,8 +230,9 @@ Size get_config_size(const char* section, const char* name, const Size& size)
 
 void set_config_size(const char* section, const char* name, const Size& size)
 {
-  std::string buf = fmt::format("{} {}", size.w, size.h);
-  set_config_string(section, name, buf.c_str());
+  char buf[128];
+  sprintf(buf, "%d %d", size.w, size.h);
+  set_config_string(section, name, buf);
 }
 
 Rect get_config_rect(const char* section, const char* name, const Rect& rect)
@@ -253,8 +254,9 @@ Rect get_config_rect(const char* section, const char* name, const Rect& rect)
 
 void set_config_rect(const char* section, const char* name, const Rect& rect)
 {
-  std::string buf = fmt::format("{} {} {} {}", rect.x, rect.y, rect.w, rect.h);
-  set_config_string(section, name, buf.c_str());
+  char buf[128];
+  sprintf(buf, "%d %d %d %d", rect.x, rect.y, rect.w, rect.h);
+  set_config_string(section, name, buf);
 }
 
 app::Color get_config_color(const char* section, const char* name, const app::Color& value)

@@ -1,5 +1,4 @@
 // Aseprite
-// Copyright (C) 2023  Igara Studio S.A.
 // Copyright (C) 2001-2015  David Capello
 //
 // This program is distributed under the terms of
@@ -11,18 +10,22 @@
 
 #include "app/xml_exception.h"
 
-#include "fmt/format.h"
 #include "tinyxml.h"
+
+#include <cstdio>
 
 namespace app {
 
 XmlException::XmlException(const TiXmlDocument* doc) throw()
 {
   try {
-    setMessage(
-      fmt::format("Error in XML file '{}' (line {}, column {})\nError {}: {}",
-                  doc->Value(), doc->ErrorRow(), doc->ErrorCol(),
-                  doc->ErrorId(), doc->ErrorDesc()).c_str());
+    char buf[4096];             // TODO Overflow
+
+    sprintf(buf, "Error in XML file '%s' (line %d, column %d)\nError %d: %s",
+            doc->Value(), doc->ErrorRow(), doc->ErrorCol(),
+            doc->ErrorId(), doc->ErrorDesc());
+
+    setMessage(buf);
   }
   catch (...) {
     // No throw

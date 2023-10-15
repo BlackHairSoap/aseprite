@@ -256,14 +256,6 @@ namespace app {
       LayerFlags m_inheritedFlags;
     };
 
-    void handleRangeMouseDown(const ui::Message* msg,
-                              const Range::Type rangeType,
-                              doc::Layer* fromLayer,
-                              const doc::frame_t fromFrame);
-
-    void handleRangeMouseMove(doc::Layer* fromLayer,
-                              const doc::frame_t fromFrame);
-
     bool selectedLayersBounds(const SelectedLayers& layers,
                               layer_t* first, layer_t* last) const;
 
@@ -357,7 +349,6 @@ namespace app {
 
     int topHeight() const;
 
-    app::gen::GlobalPref::Timeline& timelinePref() const;
     DocumentPreferences& docPref() const;
 
     // Theme/dimensions

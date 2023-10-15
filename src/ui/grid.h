@@ -34,7 +34,6 @@ namespace ui {
     Info getChildInfo(Widget* child);
     void setGap(const gfx::Size& gap);
     void setStyle(Style* style) override;
-    void setColumns(int columns);
 
   protected:
     // Events

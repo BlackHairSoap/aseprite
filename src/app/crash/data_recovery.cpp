@@ -17,9 +17,7 @@
 #include "app/pref/preferences.h"
 #include "app/resource_finder.h"
 #include "base/fs.h"
-#include "base/thread.h"
 #include "base/time.h"
-#include "fmt/format.h"
 #include "ui/system.h"
 
 #include <algorithm>
@@ -56,10 +54,10 @@ DataRecovery::DataRecovery(Context* ctx)
   do {
     base::Time time = base::current_time();
 
-    std::string buf =
-      fmt::format("{:04}{:02}{:02}-{:02}{:02}{:02}-{}",
-                  time.year, time.month, time.day,
-                  time.hour, time.minute, time.second, pid);
+    char buf[1024];
+    sprintf(buf, "%04d%02d%02d-%02d%02d%02d-%d",
+      time.year, time.month, time.day,
+      time.hour, time.minute, time.second, pid);
 
     newSessionDir = base::join_path(m_sessionsDir, buf);
 
@@ -111,7 +109,6 @@ void DataRecovery::launchSearch()
 
   m_thread = std::thread(
     [this]{
-      base::this_thread::set_name("search-sessions");
       searchForSessions();
       m_searching = false;
     });

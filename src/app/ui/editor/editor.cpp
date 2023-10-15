@@ -2243,10 +2243,10 @@ void Editor::onPaint(ui::PaintEvent& ev)
       if (Preferences::instance().perf.showRenderTime()) {
         View* view = View::getView(this);
         gfx::Rect vp = view->viewportBounds();
-        std::string buf =
-          fmt::format("{:c} {:.4g}s",
-                      Preferences::instance().experimental.newRenderEngine() ? 'N': 'O',
-                      renderElapsed);
+        char buf[128];
+        sprintf(buf, "%c %.4gs",
+                Preferences::instance().experimental.newRenderEngine() ? 'N': 'O',
+                renderElapsed);
         g->drawText(
           buf,
           gfx::rgba(255, 255, 255, 255),
@@ -2567,8 +2567,8 @@ void Editor::setZoomAndCenterInMouse(const Zoom& zoom,
   // extra space for the zoom)
   gfx::Rect visibleBounds = editorToScreen(
     getViewportBounds().createIntersection(gfx::Rect(gfx::Point(0, 0), canvasSize())));
-  screenPos.x = std::clamp(screenPos.x, visibleBounds.x, std::max(visibleBounds.x, visibleBounds.x2()-1));
-  screenPos.y = std::clamp(screenPos.y, visibleBounds.y, std::max(visibleBounds.y, visibleBounds.y2()-1));
+  screenPos.x = std::clamp(screenPos.x, visibleBounds.x, visibleBounds.x2()-1);
+  screenPos.y = std::clamp(screenPos.y, visibleBounds.y, visibleBounds.y2()-1);
 
   spritePos = screenToEditor(screenPos);
 

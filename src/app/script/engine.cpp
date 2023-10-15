@@ -32,7 +32,6 @@
 #include "doc/anidir.h"
 #include "doc/color_mode.h"
 #include "filters/target.h"
-#include "ui/base.h"
 #include "ui/cursor_type.h"
 #include "ui/mouse_button.h"
 
@@ -466,17 +465,6 @@ Engine::Engine()
   lua_setglobal(L, "FlipType");
   setfield_integer(L, "HORIZONTAL", doc::algorithm::FlipType::FlipHorizontal);
   setfield_integer(L, "VERTICAL",   doc::algorithm::FlipType::FlipVertical);
-  lua_pop(L, 1);
-
-  lua_newtable(L);
-  lua_pushvalue(L, -1);
-  lua_setglobal(L, "Align");
-  setfield_integer(L, "LEFT",   ui::LEFT);
-  setfield_integer(L, "CENTER", ui::CENTER);
-  setfield_integer(L, "RIGHT",  ui::RIGHT);
-  setfield_integer(L, "TOP",    ui::TOP);
-  setfield_integer(L, "BOTTOM", ui::BOTTOM);
-
   lua_pop(L, 1);
 
   // Register classes/prototypes

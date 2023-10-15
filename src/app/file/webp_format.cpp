@@ -180,11 +180,8 @@ bool WebPFormat::onLoad(FileOp* fop)
 
     Cel* cel = layer->cel(f);
     if (cel) {
-      const uint32_t* src = (const uint32_t*)frame_rgba;
-      for (int y=0; y<h; ++y, src+=w) {
-        memcpy(cel->image()->getPixelAddress(0, y),
-               src, w*sizeof(uint32_t));
-      }
+      memcpy(cel->image()->getPixelAddress(0, 0),
+             frame_rgba, h*w*sizeof(uint32_t));
 
       if (!has_alpha) {
         const uint32_t* src = (const uint32_t*)frame_rgba;
@@ -313,7 +310,7 @@ bool WebPFormat::onSave(FileOp* fop)
   pic.height = h;
   pic.use_argb = true;
   pic.argb = (uint32_t*)image->getPixelAddress(0, 0);
-  pic.argb_stride = image->rowPixels(); // Stride in pixels (not bytes)
+  pic.argb_stride = w;
   pic.user_data = &wd;
   pic.progress_hook = progress_report;
 

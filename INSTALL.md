@@ -127,11 +127,10 @@ On SUSE:
 
 ## Windows details
 
-Open a command prompt window (`cmd.exe`) and call:
+Open a [developer command prompt](https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt-for-vs)
+or in the command line (`cmd.exe`) call:
 
     call "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" -arch=x64
-
-The command above is required while using the 64-bit version of skia. When compiling with the 32-bit version, it is possible to open a [developer command prompt](https://docs.microsoft.com/en-us/dotnet/framework/tools/developer-command-prompt-for-vs) instead.
 
 And then
 
@@ -190,12 +189,9 @@ but it could be different in your Mac.
 ### Apple Silicon
 
 If you running macOS on an ARM64/AArch64/Apple Silicon Mac (e.g. M1),
-you can compile a native ARM64 version of Aseprite following similar 
+you can compile a native ARM64 version of Aseprite following the same
 steps as above but when we call `cmake`, we have some differences:
 
-    cd aseprite
-    mkdir build
-    cd build
     cmake \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
       -DCMAKE_OSX_ARCHITECTURES=arm64 \
@@ -208,7 +204,6 @@ steps as above but when we call `cmake`, we have some differences:
       -DPNG_ARM_NEON:STRING=on \
       -G Ninja \
       ..
-      ninja aseprite
 
 ### Issues with Retina displays
 

@@ -1,5 +1,4 @@
 // Aseprite Document Library
-// Copyright (c) 2023 Igara Studio S.A.
 // Copyright (c) 2001-2015 David Capello
 //
 // This file is released under the terms of the MIT license.
@@ -10,7 +9,6 @@
 #pragma once
 
 #include "doc/color.h"
-#include "doc/image_traits.h"
 
 namespace doc {
   class Image;

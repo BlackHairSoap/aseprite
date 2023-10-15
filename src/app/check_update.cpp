@@ -18,7 +18,6 @@
 #include "base/convert_to.h"
 #include "base/launcher.h"
 #include "base/replace_string.h"
-#include "base/thread.h"
 #include "base/version.h"
 #include "ver/info.h"
 
@@ -199,8 +198,6 @@ void CheckUpdateThreadLauncher::onMonitoringTick()
 // This method is executed in a special thread to send the HTTP request.
 void CheckUpdateThreadLauncher::checkForUpdates()
 {
-  base::this_thread::set_name("check-update");
-
   // Add mini-stats in the request
   std::stringstream extraParams;
   extraParams << "inits=" << m_inits

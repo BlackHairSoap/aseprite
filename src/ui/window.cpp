@@ -518,15 +518,17 @@ bool Window::onProcessMessage(Message* msg)
 
         // Reposition/resize
         if (m_hitTest == HitTestCaption) {
-          gfx::Point pos = clickedWindowPos->origin() + mousePos - clickedMousePos;
-          gfx::Rect rect(pos, bounds().size());
-          // Limit window position to avoid hiding the title bar
-          limitPosition(rect);
-
-          moveWindow(rect, true);
+          int x = clickedWindowPos->x + (mousePos.x - clickedMousePos.x);
+          int y = clickedWindowPos->y + (mousePos.y - clickedMousePos.y);
+          moveWindow(gfx::Rect(x, y,
+                               bounds().w,
+                               bounds().h), true);
         }
         else {
-          gfx::Size size = clickedWindowPos->size();
+          int x, y, w, h;
+
+          w = clickedWindowPos->w;
+          h = clickedWindowPos->h;
 
           bool hitLeft = (m_hitTest == HitTestBorderNW ||
                           m_hitTest == HitTestBorderW ||
@@ -542,38 +544,34 @@ bool Window::onProcessMessage(Message* msg)
                             m_hitTest == HitTestBorderSE);
 
           if (hitLeft) {
-            size.w += clickedMousePos.x - mousePos.x;
+            w += clickedMousePos.x - mousePos.x;
           }
           else if (hitRight) {
-            size.w += mousePos.x - clickedMousePos.x;
+            w += mousePos.x - clickedMousePos.x;
           }
 
           if (hitTop) {
-            size.h += (clickedMousePos.y - mousePos.y);
+            h += (clickedMousePos.y - mousePos.y);
           }
           else if (hitBottom) {
-            size.h += (mousePos.y - clickedMousePos.y);
+            h += (mousePos.y - clickedMousePos.y);
           }
 
-          limitSize(size);
+          limitSize(&w, &h);
 
-          if (bounds().size() != size) {
-            gfx::Point pos;
+          if ((bounds().w != w) ||
+              (bounds().h != h)) {
             if (hitLeft)
-              pos.x = clickedWindowPos->x - (size.w - clickedWindowPos->w);
+              x = clickedWindowPos->x - (w - clickedWindowPos->w);
             else
-              pos.x = bounds().x;
+              x = bounds().x;
 
             if (hitTop)
-              pos.y = clickedWindowPos->y - (size.h - clickedWindowPos->h);
+              y = clickedWindowPos->y - (h - clickedWindowPos->h);
             else
-              pos.y = bounds().y;
+              y = bounds().y;
 
-            gfx::Rect rect(pos, size);
-            // Limit window rectangle to avoid hiding its borders when resizing
-            limitPosition(rect);
-
-            moveWindow(rect, false);
+            moveWindow(gfx::Rect(x, y, w, h), false);
             invalidate();
           }
         }
@@ -757,35 +755,10 @@ void Window::windowSetPosition(const gfx::Rect& rect)
   m_isResizing = false;
 }
 
-void Window::limitSize(gfx::Size& size)
+void Window::limitSize(int* w, int* h)
 {
-  size.w = std::max(size.w, border().width());
-  size.h = std::max(size.h, border().height());
-}
-
-void Window::limitPosition(gfx::Rect& rect)
-{
-  if (rect.y < 0) {
-    rect.y = 0;
-    rect.h = bounds().h;
-  }
-  auto titlebarH = childrenBounds().y - bounds().y;
-  auto limitB = parent()->bounds().y2() - titlebarH;
-  if (rect.y > limitB) {
-    rect.y = limitB;
-    rect.h = bounds().h;
-  }
-  int dx = rect.w - bounds().w;
-  auto limitL = border().right() - bounds().w;
-  if (rect.x + dx < limitL) {
-    rect.x = limitL;
-    rect.w = bounds().w;
-  }
-  auto limitR = parent()->bounds().x2() - border().right();
-  if (rect.x > limitR) {
-    rect.x = limitR;
-    rect.w = bounds().w;
-  }
+  *w = std::max(*w, border().width());
+  *h = std::max(*h, border().height());
 }
 
 void Window::moveWindow(const gfx::Rect& rect, bool use_blit)

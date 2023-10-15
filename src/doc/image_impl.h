@@ -1,5 +1,5 @@
 // Aseprite Document Library
-// Copyright (C) 2018-2023  Igara Studio S.A.
+// Copyright (C) 2018-2021  Igara Studio S.A.
 // Copyright (C) 2001-2016  David Capello
 //
 // This file is released under the terms of the MIT license.
@@ -25,15 +25,21 @@ namespace doc {
 
   template<class Traits>
   class ImageImpl : public Image {
-  public:
-    using traits_t = Traits;
-    using address_t = typename traits_t::address_t;
-    using const_address_t = typename traits_t::const_address_t;
-
   private:
+    typedef typename Traits::address_t address_t;
+    typedef typename Traits::const_address_t const_address_t;
+
     ImageBufferPtr m_buffer;
     address_t m_bits;
     address_t* m_rows;
+
+    inline address_t getBitsAddress() {
+      return m_bits;
+    }
+
+    inline const_address_t getBitsAddress() const {
+      return m_bits;
+    }
 
     inline address_t getLineAddress(int y) {
       ASSERT(y >= 0 && y < height());
@@ -47,12 +53,7 @@ namespace doc {
 
   public:
     inline address_t address(int x, int y) const {
-      if constexpr (Traits::pixels_per_byte == 0) {
-        return (address_t)(getLineAddress(y) + x);
-      }
-      else {
-        return (address_t)(getLineAddress(y) + x / Traits::pixels_per_byte);
-      }
+      return (address_t)(getLineAddress(y) + x / (Traits::pixels_per_byte == 0 ? 1 : Traits::pixels_per_byte));
     }
 
     ImageImpl(const ImageSpec& spec,
@@ -62,11 +63,9 @@ namespace doc {
     {
       ASSERT(Traits::color_mode == spec.colorMode());
 
-      m_rowBytes = Traits::rowstride_bytes(width());
-
-      const std::size_t for_rows = sizeof(address_t) * height();
-      const std::size_t for_pixels = m_rowBytes * height();
-      const std::size_t required_size = for_pixels + for_rows;
+      std::size_t for_rows = sizeof(address_t) * spec.height();
+      std::size_t rowstride_bytes = Traits::getRowStrideBytes(spec.width());
+      std::size_t required_size = for_rows + rowstride_bytes*spec.height();
 
       if (!m_buffer)
         m_buffer = std::make_shared<ImageBuffer>(required_size);
@@ -76,13 +75,13 @@ namespace doc {
       std::fill(m_buffer->buffer(),
                 m_buffer->buffer()+required_size, 0);
 
-      m_bits = (address_t)m_buffer->buffer();
-      m_rows = (address_t*)(m_buffer->buffer() + for_pixels);
+      m_rows = (address_t*)m_buffer->buffer();
+      m_bits = (address_t)(m_buffer->buffer() + for_rows);
 
       address_t addr = m_bits;
-      for (int y=0; y<height(); ++y) {
+      for (int y=0; y<spec.height(); ++y) {
         m_rows[y] = addr;
-        addr = (address_t)(((uint8_t*)addr) + m_rowBytes);
+        addr = (address_t)(((uint8_t*)addr) + rowstride_bytes);
       }
     }
 
@@ -108,12 +107,16 @@ namespace doc {
     }
 
     void clear(color_t color) override {
-      const int w = width();
-      const int h = height();
-      for (int y=0; y<h; ++y) {
-        address_t p = address(0, y);
-        std::fill(p, p+w, color);
-      }
+      int w = width();
+      int h = height();
+
+      // Fill the first line
+      address_t first = address(0, 0);
+      std::fill(first, first+w, color);
+
+      // Copy the first line into all other lines
+      for (int y=1; y<h; ++y)
+        std::copy(first, first+w, address(0, y));
     }
 
     void copy(const Image* _src, gfx::Clip area) override {
@@ -222,14 +225,16 @@ namespace doc {
 
   template<>
   inline void ImageImpl<IndexedTraits>::clear(color_t color) {
-    uint8_t* p = address(0, 0);
-    std::fill(p, p+rowBytes()*height(), color);
+    std::fill(getBitsAddress(),
+              getBitsAddress() + width()*height(),
+              color);
   }
 
   template<>
   inline void ImageImpl<BitmapTraits>::clear(color_t color) {
-    uint8_t* p = address(0, 0);
-    std::fill(p, p+rowBytes()*height(), (color ? 0xff: 0x00));
+    std::fill(getBitsAddress(),
+              getBitsAddress() + BitmapTraits::getRowStrideBytes(width()) * height(),
+              (color ? 0xff: 0x00));
   }
 
   template<>

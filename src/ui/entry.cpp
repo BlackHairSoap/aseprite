@@ -60,7 +60,7 @@ Entry::Entry(const int maxsize, const char* format, ...)
   if (format) {
     va_list ap;
     va_start(ap, format);
-    std::vsnprintf(buf, sizeof(buf), format, ap);
+    vsprintf(buf, format, ap);
     va_end(ap);
   }
   // empty string

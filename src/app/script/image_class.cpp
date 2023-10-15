@@ -85,13 +85,6 @@ struct ImageObj {
     else
       return nullptr;
   }
-
-  doc::Tileset* tileset(lua_State* L) {
-    if (tilesetId)
-      return check_docobj(L, doc::get<doc::Tileset>(tilesetId));
-    else
-      return nullptr;
-  }
 };
 
 void render_sprite(Image* dst,
@@ -624,29 +617,21 @@ int Image_get_version(lua_State* L)
 int Image_get_rowStride(lua_State* L)
 {
   const auto obj = get_obj<ImageObj>(L, 1);
-  lua_pushinteger(L, obj->image(L)->rowBytes());
-  return 1;
-}
-
-int Image_get_bytesPerPixel(lua_State* L)
-{
-  const auto obj = get_obj<ImageObj>(L, 1);
-  lua_pushinteger(L, obj->image(L)->bytesPerPixel());
+  lua_pushinteger(L, obj->image(L)->getRowStrideSize());
   return 1;
 }
 
 int Image_get_bytes(lua_State* L)
 {
   const auto img = get_obj<ImageObj>(L, 1)->image(L);
-  lua_pushlstring(L, (const char*)img->getPixelAddress(0, 0),
-                  img->rowBytes() * img->height());
+  lua_pushlstring(L, (const char*)img->getPixelAddress(0, 0), img->getRowStrideSize() * img->height());
   return 1;
 }
 
 int Image_set_bytes(lua_State* L)
 {
   const auto img = get_obj<ImageObj>(L, 1)->image(L);
-  size_t bytes_size, bytes_needed = img->rowBytes() * img->height();
+  size_t bytes_size, bytes_needed = img->getRowStrideSize() * img->height();
   const char* bytes = lua_tolstring(L, 2, &bytes_size);
 
   if (bytes_size == bytes_needed) {
@@ -726,7 +711,6 @@ const Property Image_properties[] = {
   { "id", Image_get_id, nullptr },
   { "version", Image_get_version, nullptr },
   { "rowStride", Image_get_rowStride, nullptr },
-  { "bytesPerPixel", Image_get_bytesPerPixel, nullptr },
   { "bytes", Image_get_bytes, Image_set_bytes },
   { "width", Image_get_width, nullptr },
   { "height", Image_get_height, nullptr },
@@ -782,11 +766,6 @@ doc::Image* get_image_from_arg(lua_State* L, int index)
 doc::Cel* get_image_cel_from_arg(lua_State* L, int index)
 {
   return get_obj<ImageObj>(L, index)->cel(L);
-}
-
-doc::Tileset* get_image_tileset_from_arg(lua_State* L, int index)
-{
-  return get_obj<ImageObj>(L, index)->tileset(L);
 }
 
 } // namespace script

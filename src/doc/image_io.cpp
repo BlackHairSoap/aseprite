@@ -36,13 +36,11 @@ bool write_image(std::ostream& os, const Image* image, CancelIO* cancel)
   write16(os, image->height());        // Height
   write32(os, image->maskColor());     // Mask color
 
-  // Number of bytes for visible pixels on each row
-  const int widthBytes = image->widthBytes();
-
+  int rowSize = image->getRowStrideSize();
 #if 0
   {
     for (int c=0; c<image->height(); c++)
-      os.write((char*)image->getPixelAddress(0, c), widthBytes);
+      os.write((char*)image->getPixelAddress(0, c), rowSize);
   }
 #else
   {
@@ -67,7 +65,7 @@ bool write_image(std::ostream& os, const Image* image, CancelIO* cancel)
       }
 
       zstream.next_in = (Bytef*)image->getPixelAddress(0, y);
-      zstream.avail_in = widthBytes;
+      zstream.avail_in = rowSize;
       int flush = (y == image->height()-1 ? Z_FINISH: Z_NO_FLUSH);
 
       do {
@@ -121,13 +119,12 @@ Image* read_image(std::istream& is, bool setId)
 
   std::unique_ptr<Image> image(
     Image::create(static_cast<PixelFormat>(pixelFormat), width, height));
-
-  const int widthBytes = image->widthBytes();
+  int rowSize = image->getRowStrideSize();
 
 #if 0
   {
     for (int c=0; c<image->height(); c++)
-      is.read((char*)image->getPixelAddress(0, c), widthBytes);
+      is.read((char*)image->getPixelAddress(0, c), rowSize);
   }
 #else
   {
@@ -142,12 +139,13 @@ Image* read_image(std::istream& is, bool setId)
     if (err != Z_OK)
       throw base::Exception("ZLib error %d in inflateInit().", err);
 
+    int uncompressed_size = image->height() * rowSize;
+    int uncompressed_offset = 0;
     int remain = avail_bytes;
 
     std::vector<uint8_t> compressed(4096);
-    int y = 0;
-    uint8_t* address = nullptr;
-    uint8_t* address_end = nullptr;
+    uint8_t* address = image->getPixelAddress(0, 0);
+    uint8_t* address_end = image->getPixelAddress(0, 0) + uncompressed_size;
 
     while (remain > 0) {
       int len = std::min(remain, int(compressed.size()));
@@ -168,14 +166,6 @@ Image* read_image(std::istream& is, bool setId)
       zstream.avail_in = (uInt)bytes_read;
 
       do {
-        if (address == address_end) {
-          if (y == image->height())
-            throw base::Exception("Too much data to uncompress for the image.");
-
-          address = image->getPixelAddress(0, y++);
-          address_end = address + widthBytes;
-        }
-
         zstream.next_out = (Bytef*)address;
         zstream.avail_out = address_end - address;
 
@@ -185,6 +175,10 @@ Image* read_image(std::istream& is, bool setId)
 
         int uncompressed_bytes = (int)((address_end - address) - zstream.avail_out);
         if (uncompressed_bytes > 0) {
+          if (uncompressed_offset+uncompressed_bytes > uncompressed_size)
+            throw base::Exception("Bad compressed image.");
+
+          uncompressed_offset += uncompressed_bytes;
           address += uncompressed_bytes;
         }
       } while (zstream.avail_in != 0 && zstream.avail_out == 0);

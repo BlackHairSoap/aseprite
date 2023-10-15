@@ -1,5 +1,4 @@
 // Aseprite
-// Copyright (C) 2023  Igara Studio S.A.
 // Copyright (C) 2001-2015  David Capello
 //
 // This program is distributed under the terms of
@@ -29,7 +28,7 @@ CopyRect::CopyRect(Image* dst, const Image* src, const gfx::Clip& clip)
 
   // Fill m_data with "src" data
 
-  int lineSize = src->bytesPerPixel() * m_clip.size.w;
+  int lineSize = src->getRowStrideSize(m_clip.size.w);
   m_data.resize(lineSize * m_clip.size.h);
 
   auto it = m_data.begin();
@@ -83,7 +82,7 @@ void CopyRect::swap()
 
 int CopyRect::lineSize()
 {
-  return image()->bytesPerPixel() * m_clip.size.w;
+  return image()->getRowStrideSize(m_clip.size.w);
 }
 
 } // namespace cmd

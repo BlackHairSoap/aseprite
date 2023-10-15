@@ -10,7 +10,6 @@
 
 #ifdef ENABLE_UI
 
-#include "doc/palette.h"
 #include "gfx/path.h"
 #include "os/font.h"
 #include "os/paint.h"
@@ -26,12 +25,6 @@ namespace app {
 namespace script {
 
 class GraphicsContext {
-private:
-  struct State {
-    os::Paint paint;
-    doc::Palette* palette = nullptr;
-  };
-
 public:
   GraphicsContext(const os::SurfaceRef& surface, int uiscale) : m_surface(surface), m_uiscale(uiscale) { }
   GraphicsContext(GraphicsContext&& gc) {
@@ -45,22 +38,17 @@ public:
   os::FontRef font() const { return m_font; }
   void font(const os::FontRef& font) { m_font = font; }
 
-  doc::Palette* palette() const { return m_palette; }
-  void palette(doc::Palette* palette) { m_palette = palette; }
-
   int width() const { return m_surface->width(); }
   int height() const { return m_surface->height(); }
 
   void save() {
-    m_saved.push(State{m_paint, m_palette});
+    m_saved.push(m_paint);
     m_surface->save();
   }
 
   void restore() {
     if (!m_saved.empty()) {
-      auto state = m_saved.top();
-      m_paint = state.paint;
-      m_palette = state.palette;
+      m_paint = m_saved.top();
       m_saved.pop();
       m_surface->restore();
     }
@@ -142,8 +130,7 @@ private:
   os::Paint m_paint;
   os::FontRef m_font;
   gfx::Path m_path;
-  std::stack<State> m_saved;
-  doc::Palette* m_palette = nullptr;
+  std::stack<os::Paint> m_saved;
 };
 
 } // namespace script

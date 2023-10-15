@@ -1,5 +1,4 @@
 // Aseprite Document Library
-// Copyright (c) 2023 Igara Studio S.A.
 // Copyright (c) 2001-2018 David Capello
 //
 // This file is released under the terms of the MIT license.
@@ -12,7 +11,6 @@
 #include "doc/mask_io.h"
 
 #include "base/serialization.h"
-#include "doc/image_traits.h"
 #include "doc/mask.h"
 
 #include <iostream>
@@ -41,7 +39,7 @@ void write_mask(std::ostream& os, const Mask* mask)
   write16(os, mask->bitmap() ? bounds.h: 0);    // Height
 
   if (mask->bitmap()) {
-    int size = BitmapTraits::width_bytes(bounds.w);
+    int size = BitmapTraits::getRowStrideBytes(bounds.w);
 
     for (int c=0; c<bounds.h; c++)
       os.write((char*)mask->bitmap()->getPixelAddress(0, c), size);
@@ -58,7 +56,7 @@ Mask* read_mask(std::istream& is)
   std::unique_ptr<Mask> mask(new Mask());
 
   if (w > 0 && h > 0) {
-    int size = BitmapTraits::width_bytes(w);
+    int size = BitmapTraits::getRowStrideBytes(w);
 
     mask->add(gfx::Rect(x, y, w, h));
     for (int c=0; c<mask->bounds().h; c++)
